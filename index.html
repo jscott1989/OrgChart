@@ -2,18 +2,31 @@
 <html>
 <head>
 	<title>Organisational Chart</title>
+	<link rel="stylesheet" href="jquery.orgchart.css">
 </head>
 <body>
-
+<div id="main"></div>
 </body>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="jquery.min.js"></script>
 <script src="chart.js"></script>
 <script>
 $(function() {
 	$.get('layout.txt', function(data) {
 		var formatted_data = load_indented_data(data);
-		console.log(formatted_data);
+		
+		list = format_as_list(formatted_data);
+		list.attr('id', 'org').hide();
+		$('body').append(list);
+
+		$("#org").orgChart({
+			levels : -1, 
+			stack  : false,
+			nodeText : function($node) {return $node.textChildren();}}, 
+		$("#main"));
 	})
 })
 </script>
+
+<script src="jquery.textchildren.js"></script>
+<script src="jquery.orgchart.js"></script>
 </html>
