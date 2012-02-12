@@ -1,0 +1,19 @@
+<!doctype>
+<html>
+<head>
+	<title>Organisational Chart</title>
+</head>
+<body>
+
+</body>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="chart.js"></script>
+<script>
+$(function() {
+	$.get('layout.txt', function(data) {
+		var formatted_data = load_indented_data(data);
+		console.log(formatted_data);
+	})
+})
+</script>
+</html>

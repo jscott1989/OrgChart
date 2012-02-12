@@ -1,0 +1,14 @@
+CEO
+	VP Marketing
+		PR
+			Services
+				Manager1
+				Manager2
+		VP Sales
+			Manager1
+			Manager2
+			Manager3
+	VP Production
+		Manager1
+		Manager2
+		Manager3
