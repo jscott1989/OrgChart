@@ -15,7 +15,23 @@ html, body {
 	text-align: center;
 }
 
-.node span {
-	background: blue;
+.node .inner-node {
+	background: white;
+	border: 1px solid black;
 	cursor: pointer;
+	width: 200px;
+	height: 50px;
+	margin: auto;
+	position: relative;
+}
+
+.expand {
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+	background: pink;
+	border: 1px solid black;
+	width: 15px;
+	height: 15px;
+	text-align: center;
 }

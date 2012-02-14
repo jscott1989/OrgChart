@@ -13,7 +13,9 @@
 <script>
 
 function draw_line(paper, start_position, end_position) {
-	var c = paper.path("M" + start_position.left + " " + start_position.top + "L" + end_position.left + " " + end_position.top);
+	// Try to straighten the lines
+	var middle_top = start_position.top + ((end_position.top - start_position.top)/2);
+	var c = paper.path("M" + start_position.left + " " + start_position.top + "L" + start_position.left + " " + middle_top + "L" + end_position.left + " " +middle_top + "L" + end_position.left + " " + end_position.top);
 }
 
 var paper = Raphael(0, 0, 10000, 10000);
@@ -27,18 +29,18 @@ function draw_lines(el) {
 	}
 
 	if (drawing) {
-		var span = el['_meta']['node'].find('span');
-		var start_position = span.offset();
-		start_position.left += (span.width()/2);
-		start_position.top += span.height();
+		var inner_node = el['_meta']['node'].find('.inner-node');
+		var start_position = inner_node.offset();
+		start_position.left += (inner_node.width()/2);
+		start_position.top += inner_node.height();
 	}
 
 	for(var i in el) {
 		if (i != '_meta') {
 			if (drawing && el[i]['_meta']['node'].is(':visible')) {
-				span = el[i]['_meta']['node'].find('span');
-				var end_position = span.offset();
-				end_position.left += span.width()/2;
+				inner_node = el[i]['_meta']['node'].find('.inner-node');
+				var end_position = inner_node.offset();
+				end_position.left += inner_node.width()/2;
 				draw_line(paper, start_position, end_position);
 			}
 			draw_lines(el[i]);
@@ -48,16 +50,23 @@ function draw_lines(el) {
 
 function calculate_width(el, caption) {
 	var width = 0;
-	for(var i in el) {
-		if (i != '_meta') {
-			width += calculate_width(el[i], i);
+
+	if (!('_meta' in el) || !('hidden' in el['_meta']) || !(el['_meta']['hidden'])) {
+		for(var i in el) {
+			if (i != '_meta') {
+				width += calculate_width(el[i], i);
+			}
 		}
 	}
 
-	if (width < 100) {
-		width = 100;
+	if (width < 210) {
+		width = 210;
 	}
-	el['_meta'] = {'width': width};
+	if (!('_meta' in el)) {
+		el['_meta'] = {};
+	}
+
+	el['_meta']['width'] = width;
 	return width;
 }
 
@@ -83,13 +92,25 @@ function calculate_positions(el, level) {
 
 function place_nodes(el, name) {
 	if (name) {
-		var node = $('#nodeTemplate').tmpl({"name": name}).css({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": el['_meta']['level'] * 30}).appendTo($('body'));
+		var node = $('#nodeTemplate').tmpl({"name": name}).css({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": el['_meta']['level'] * 60}).appendTo($('body'));
 		node.data('node', el);
 		el['_meta']['node'] = node;
 	}
 	for(var i in el) {
 		if (i != '_meta') {
 			place_nodes(el[i], i);
+		}
+	}
+}
+
+function position_nodes(el, name, callback) {
+	if (name) {
+		var node = el['_meta']['node'];
+		node.animate({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": el['_meta']['level'] * 60}, {"complete": callback});
+	}
+	for(var i in el) {
+		if (i != '_meta') {
+			position_nodes(el[i], i, callback);
 		}
 	}
 }
@@ -126,8 +147,8 @@ $(function() {
 		place_nodes(formatted_data);
 		draw_lines(formatted_data);
 
-		$('.node span').click(function() {
-			var node_el = $(this).parent();
+		$('.node .inner-node .expand').click(function() {
+			var node_el = $(this).closest('.node');
 			var node = node_el.data('node');
 			if (node['_meta']['hidden']) {
 				// Show children
@@ -138,7 +159,12 @@ $(function() {
 			}
 
 			refresh_visibility(formatted_data);
-			draw_lines(formatted_data);
+			calculate_width(formatted_data);
+			calculate_positions(formatted_data);
+			paper.clear();
+			position_nodes(formatted_data, false, function() {
+				draw_lines(formatted_data);
+			});
 		})
 	});
 })
@@ -146,7 +172,10 @@ $(function() {
 
 <script id="nodeTemplate" type="text/x-jquery-tmpl">
 	<div class="node">
-		<span>${name}</span>
+		<div class="inner-node">
+			<span>${name}</span>
+			<div class="expand">v</div>
+		</div>
 	</div>
 </script>
 </body>
