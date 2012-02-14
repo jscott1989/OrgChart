@@ -18,7 +18,17 @@ function load_indented_data(data) {
 
 function load_indented_lines(obj, level, lines, line_count) {
 	while (line_count < lines.length) {
+		if (lines[line_count] == '' || lines[line_count].indexOf("#") == 0) {
+			line_count++;
+			continue;
+		}
+
 		var line = count_leading_tabs(lines[line_count]);
+
+		if (line.indexOf("#") == 0) {
+			line_count++;
+			continue;
+		}
 
 		if (line[0] == level) {
 			obj[line[1]] = {}

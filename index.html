@@ -9,13 +9,20 @@
 <script src="jquery.min.js"></script>
 <script src="chart.js"></script>
 <script src="jquery.tmpl.js"></script>
+<script src="jquery.scrollto.js"></script>
 <script src="raphael.js"></script>
 <script>
 
 function draw_line(paper, start_position, end_position) {
 	// Try to straighten the lines
-	var middle_top = start_position.top + ((end_position.top - start_position.top)/2);
-	var c = paper.path("M" + start_position.left + " " + start_position.top + "L" + start_position.left + " " + middle_top + "L" + end_position.left + " " +middle_top + "L" + end_position.left + " " + end_position.top);
+
+	if (start_position.left == end_position.left) {
+		// Easy
+		var c = paper.path("M" + start_position.left + " " + start_position.top + "L" + end_position.left + " " + end_position.top);
+	} else {
+		var middle_top = start_position.top + ((end_position.top - start_position.top)/2);
+		var c = paper.path("M" + start_position.left + " " + start_position.top + "L" + start_position.left + " " + middle_top + "L" + end_position.left + " " +middle_top + "L" + end_position.left + " " + end_position.top);
+	}
 }
 
 var paper = Raphael(0, 0, 10000, 10000);
@@ -90,9 +97,29 @@ function calculate_positions(el, level) {
 	}
 }
 
+function count(obj) {
+	c = 0;
+	for (i in obj) {
+		if (obj.hasOwnProperty(i)) {
+			c++;
+		}
+	}
+	return c;
+}
+
+var node_count = 0;
+var BASE_LEVEL = 80;
+var LEVEL_HEIGHT = 80;
+
 function place_nodes(el, name) {
+	node_count += 1;
 	if (name) {
-		var node = $('#nodeTemplate').tmpl({"name": name}).css({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": el['_meta']['level'] * 60}).appendTo($('body'));
+		var node;
+		if (count(el) > 1) { 
+			node = $('#nodeTemplateChildren').tmpl({"name": name}).css({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": BASE_LEVEL + el['_meta']['level'] * LEVEL_HEIGHT}).appendTo($('body'));
+		} else {
+			node = $('#nodeTemplate').tmpl({"name": name}).css({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": BASE_LEVEL + el['_meta']['level'] * LEVEL_HEIGHT}).appendTo($('body'));
+		}
 		node.data('node', el);
 		el['_meta']['node'] = node;
 	}
@@ -106,7 +133,7 @@ function place_nodes(el, name) {
 function position_nodes(el, name, callback) {
 	if (name) {
 		var node = el['_meta']['node'];
-		node.animate({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": el['_meta']['level'] * 60}, {"complete": callback});
+		node.animate({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": BASE_LEVEL + el['_meta']['level'] * LEVEL_HEIGHT}, {"complete": callback});
 	}
 	for(var i in el) {
 		if (i != '_meta') {
@@ -162,15 +189,36 @@ $(function() {
 			calculate_width(formatted_data);
 			calculate_positions(formatted_data);
 			paper.clear();
+
+			var node_callbacks = 0;
+
 			position_nodes(formatted_data, false, function() {
-				draw_lines(formatted_data);
+				node_callbacks += 1;
+				if (node_callbacks == node_count - 1) {
+					// Finished
+					draw_lines(formatted_data);
+
+					var node_position = node_el.offset();
+
+					node_position.left -= ($(window).width()/2);
+					node_position.top -= ($(window).height()/2);
+
+					if (node_position.left < 0) {
+						node_position.left = 0;
+					}
+					if (node_position.top < 0) {
+						node_position.top = 0;
+					}
+
+					//$.scrollTo(node_el, 400);
+				}
 			});
 		})
 	});
 })
 </script>
 
-<script id="nodeTemplate" type="text/x-jquery-tmpl">
+<script id="nodeTemplateChildren" type="text/x-jquery-tmpl">
 	<div class="node">
 		<div class="inner-node">
 			<span>${name}</span>
@@ -178,5 +226,14 @@ $(function() {
 		</div>
 	</div>
 </script>
+
+<script id="nodeTemplate" type="text/x-jquery-tmpl">
+	<div class="node">
+		<div class="inner-node">
+			<span>${name}</span>
+		</div>
+	</div>
+</script>
+
 </body>
 </html>
