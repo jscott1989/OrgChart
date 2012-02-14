@@ -36,7 +36,7 @@ function format_as_list(formatted_data) {
 	var ul = $('<ul></ul>');
 
 	for (i in formatted_data) {
-		var li = $('<li>' + i + '</li>');
+		var li = $('<li><div class="positioning"></div><span>' + i + '</span></li>');
 		li.append(format_as_list(formatted_data[i]));
 		ul.append(li);
 	}

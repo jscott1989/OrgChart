@@ -1,0 +1,21 @@
+html, body {
+	margin: 0;
+	padding: 0;
+}
+#map {
+	display: block;
+	background: pink;
+	width: 10000px;
+	height: 10000px;
+}
+
+.node {
+	position: absolute;
+	top: 0px;
+	text-align: center;
+}
+
+.node span {
+	background: blue;
+	cursor: pointer;
+}

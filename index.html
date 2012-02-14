@@ -2,31 +2,152 @@
 <html>
 <head>
 	<title>Organisational Chart</title>
-	<link rel="stylesheet" href="jquery.orgchart.css">
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="main"></div>
-</body>
+<div id="map"></div>
 <script src="jquery.min.js"></script>
 <script src="chart.js"></script>
+<script src="jquery.tmpl.js"></script>
+<script src="raphael.js"></script>
 <script>
+
+function draw_line(paper, start_position, end_position) {
+	var c = paper.path("M" + start_position.left + " " + start_position.top + "L" + end_position.left + " " + end_position.top);
+}
+
+var paper = Raphael(0, 0, 10000, 10000);
+
+function draw_lines(el) {
+	var drawing = false;
+	if ('node' in el['_meta']) {
+		drawing = true;
+	} else {
+		paper.clear();
+	}
+
+	if (drawing) {
+		var span = el['_meta']['node'].find('span');
+		var start_position = span.offset();
+		start_position.left += (span.width()/2);
+		start_position.top += span.height();
+	}
+
+	for(var i in el) {
+		if (i != '_meta') {
+			if (drawing && el[i]['_meta']['node'].is(':visible')) {
+				span = el[i]['_meta']['node'].find('span');
+				var end_position = span.offset();
+				end_position.left += span.width()/2;
+				draw_line(paper, start_position, end_position);
+			}
+			draw_lines(el[i]);
+		}
+	}
+}
+
+function calculate_width(el, caption) {
+	var width = 0;
+	for(var i in el) {
+		if (i != '_meta') {
+			width += calculate_width(el[i], i);
+		}
+	}
+
+	if (width < 100) {
+		width = 100;
+	}
+	el['_meta'] = {'width': width};
+	return width;
+}
+
+/**
+ * Actually calculates the position of its children
+ */
+function calculate_positions(el, level) {
+	if (!level) {
+		level = 0;
+	}
+
+	var left = el['_meta']['left'];
+
+	for(var i in el) {
+		if (i != '_meta') {
+			el[i]['_meta']['left'] = left;
+			el[i]['_meta']['level'] = level;
+			left += el[i]['_meta']['width'];
+			calculate_positions(el[i], level + 1);
+		}
+	}
+}
+
+function place_nodes(el, name) {
+	if (name) {
+		var node = $('#nodeTemplate').tmpl({"name": name}).css({"left": el['_meta']['left'], "width": el['_meta']['width'], "top": el['_meta']['level'] * 30}).appendTo($('body'));
+		node.data('node', el);
+		el['_meta']['node'] = node;
+	}
+	for(var i in el) {
+		if (i != '_meta') {
+			place_nodes(el[i], i);
+		}
+	}
+}
+
+function refresh_visibility(node, hidden_in_tree) {
+	if ('_meta' in node && 'node' in node['_meta']) {
+		if (hidden_in_tree) {
+			node['_meta']['node'].hide();
+		} else {
+			node['_meta']['node'].show();
+		}
+
+		if (node['_meta']['hidden']) {
+			hidden_in_tree = true;
+		}
+	}
+
+	for (var i in node) {
+		if (i != '_meta') {
+			refresh_visibility(node[i], hidden_in_tree);
+		}
+	}
+}
+
 $(function() {
 	$.get('layout.txt', function(data) {
 		var formatted_data = load_indented_data(data);
-		
-		list = format_as_list(formatted_data);
-		list.attr('id', 'org').hide();
-		$('body').append(list);
 
-		$("#org").orgChart({
-			levels : -1, 
-			stack  : false,
-			nodeText : function($node) {return $node.textChildren();}}, 
-		$("#main"));
-	})
+		calculate_width(formatted_data);
+
+		formatted_data['_meta']['left'] = 0;
+		calculate_positions(formatted_data);
+
+		place_nodes(formatted_data);
+		draw_lines(formatted_data);
+
+		$('.node span').click(function() {
+			var node_el = $(this).parent();
+			var node = node_el.data('node');
+			if (node['_meta']['hidden']) {
+				// Show children
+				delete(node['_meta']['hidden']);
+			} else {
+				// Hide children
+				node['_meta']['hidden'] = true;
+			}
+
+			refresh_visibility(formatted_data);
+			draw_lines(formatted_data);
+		})
+	});
 })
 </script>
 
-<script src="jquery.textchildren.js"></script>
-<script src="jquery.orgchart.js"></script>
+<script id="nodeTemplate" type="text/x-jquery-tmpl">
+	<div class="node">
+		<span>${name}</span>
+	</div>
+</script>
+</body>
 </html>
