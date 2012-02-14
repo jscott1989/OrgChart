@@ -151,7 +151,10 @@ function refresh_visibility(node, hidden_in_tree) {
 		}
 
 		if (node['_meta']['hidden']) {
+			node['_meta']['node'].find('.expand').text('v');
 			hidden_in_tree = true;
+		} else {
+			node['_meta']['node'].find('.expand').text('^');
 		}
 	}
 
@@ -210,7 +213,6 @@ $(function() {
 						node_position.top = 0;
 					}
 
-					console.log("SCROLLING");
 					$.scrollTo(node_el.find('.inner-node'), 400, {offset:{top: (0-($(window).height()/2)), left: (0-($(window).width()/2))}});
 				}
 			});
@@ -223,7 +225,7 @@ $(function() {
 	<div class="node">
 		<div class="inner-node">
 			<span>${name}</span>
-			<div class="expand">v</div>
+			<div class="expand">^</div>
 		</div>
 	</div>
 </script>
