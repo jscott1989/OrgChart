@@ -54,7 +54,7 @@ function format_as_list(formatted_data) {
 	return ul
 }
 
-function draw_line(paper, start_position, end_position) {
+function draw_line(paper, el, start_position, end_position) {
 	// Try to straighten the lines
 	var c;
 	if (start_position.left == end_position.left) {
@@ -67,32 +67,30 @@ function draw_line(paper, start_position, end_position) {
 
 	c.attr('stroke-width', 3);
 	c.attr('stroke-opacity', 1);
+
+	el['_meta']['lines'].push(c);
 }
 
 var paper = Raphael(0, 0, 10000, 10000);
 
 function draw_lines(el) {
-	var drawing = false;
-	if ('node' in el['_meta']) {
-		drawing = true;
-	} else {
-		paper.clear();
-	}
+	var inner_node = el['_meta']['node'].find('.inner-node');
+	var start_position = inner_node.offset();
+	start_position.left += (inner_node.width()/2);
+	start_position.top += inner_node.height();
 
-	if (drawing) {
-		var inner_node = el['_meta']['node'].find('.inner-node');
-		var start_position = inner_node.offset();
-		start_position.left += (inner_node.width()/2);
-		start_position.top += inner_node.height();
+	var line;
+	while (line = el['_meta']['lines'].pop()) {
+		line.remove();
 	}
 
 	for(var i in el) {
 		if (i != '_meta') {
-			if (drawing && el[i]['_meta']['node'].is(':visible')) {
+			if (el[i]['_meta']['node'].is(':visible')) {
 				inner_node = el[i]['_meta']['node'].find('.inner-node');
 				var end_position = inner_node.offset();
 				end_position.left += inner_node.width()/2;
-				draw_line(paper, start_position, end_position);
+				draw_line(paper, el, start_position, end_position);
 			}
 			draw_lines(el[i]);
 		}
@@ -114,7 +112,7 @@ function calculate_width(el, caption) {
 		width = 210;
 	}
 	if (!('_meta' in el)) {
-		el['_meta'] = {};
+		el['_meta'] = {'lines': []};
 	}
 
 	el['_meta']['width'] = width;
@@ -226,6 +224,19 @@ function expand_all(el) {
 	}
 }
 
+function clear_paper(el) {
+	var line;
+	while (line = el['_meta']['lines'].pop()) {
+		line.remove();
+	}
+
+	for (var i in el) {
+		if (i != '_meta') {
+			clear_paper(el[i]);
+		}
+	}
+}
+
 function redraw(formatted_data, options) {
 	refresh_visibility(formatted_data);
 
@@ -260,20 +271,36 @@ function redraw(formatted_data, options) {
 	
 
 	if (changed) {
-		paper.clear();
+
+		for (var i in formatted_data) {
+			if (i != '_meta') {
+				clear_paper(formatted_data[i]);
+			}
+		}
 
 		var node_callbacks = 0;
 		
 		position_nodes(formatted_data, false, function() {
 			node_callbacks += 1;
 			if (node_callbacks == node_count - 1) {
-				draw_lines(formatted_data);
+
+				for (var i in formatted_data) {
+					if (i != '_meta') {
+						draw_lines(formatted_data[i]);
+					}
+				}
+				
 
 				if (options && 'callback' in options) {
 					options['callback']();
 				}
 			}
 		});
+	} else {
+		if (options && 'follow' in options) {
+			clear_paper(options['follow']);
+			draw_lines(options['follow']);
+		}
 	}
 }
 
@@ -290,7 +317,12 @@ $(function() {
 		calculate_positions(formatted_data);
 
 		place_nodes(formatted_data);
-		draw_lines(formatted_data);
+		
+		for (var i in formatted_data) {
+			if (i != '_meta') {
+				draw_lines(formatted_data[i]);
+			}
+		}
 
 		$('#menu .collapse').click(function() {
 			var menu = $(this).parent();
