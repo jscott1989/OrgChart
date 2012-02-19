@@ -53,18 +53,24 @@ Node.prototype.draw_lines = function() {
 
 Node.prototype.calculate_size = function() {
 	this.width = 0;
+	this.height = 0;
 
 	if (!(this.hidden)) {
 		for(var i in this.children) {
-			this.width += this.children[i].calculate_size().width;
+			var c_size = this.children[i].calculate_size();
+			this.width += c_size.width;
+			if (c_size.height > this.height)
+				this.height = c_size.height;
 		}
 	}
 
-	if (this.width < 210) {
-		this.width = 210;
+	if (this.width < NODE_WIDTH) {
+		this.width = NODE_WIDTH;
 	}
 
-	return {width: this.width};
+	this.height += LEVEL_HEIGHT;
+
+	return {width: this.width, height: this.height};
 }
 
 // Returns true if positions have changed
@@ -140,25 +146,43 @@ function Chart(name) {
 }
 
 Chart.prototype.refresh_visibility = function() {
-	for (var i in this.children) {
-		this.children[i].refresh_visibility();
+	if (this.hidden) {
+		this.element.hide();
+	} else {
+		this.element.show();
 	}
+
+	for (var i in this.children) {
+		this.children[i].refresh_visibility(this.hidden);
+	}
+
+	this.clear()
+	this.draw_lines()
 }
 
 Chart.prototype.calculate_size = function() {
 	this.width = 0;
+	this.height = 0;
 
 	if (!(this.hidden)) {
 		for(var i in this.children) {
-			this.width += this.children[i].calculate_size().width;
+			var c_size = this.children[i].calculate_size();
+			this.width += c_size.width;
+
+			if (c_size.height > this.height)
+				this.height = c_size.height;
 		}
 	}
 
-	if (this.width < 210) {
-		this.width = 210;
+	if (this.width < NODE_WIDTH) {
+		this.width = NODE_WIDTH;
 	}
 
-	return {width: this.width};
+	if (this.height < LEVEL_HEIGHT) {
+		this.height = LEVEL_HEIGHT
+	}
+
+	return {width: this.width, height: this.height};
 }
 
 // Returns true if positions have changed
@@ -182,8 +206,18 @@ Chart.prototype.calculate_positions = function() {
 }
 
 Chart.prototype.place = function() {
-	for(var i in this.children) {
-		this.children[i].place();
+	if (count(this.children) > 0) { 
+		this.element = $('#chartTemplate').tmpl({"name": this.name}).css({
+			"left": BASE_LEFT + this.left, 
+			"width": this.width,
+			"height": this.height + BASE_LEVEL
+		}).appendTo($('body'));
+
+		this.element.data('object', this);
+
+		for(var i in this.children) {
+			this.children[i].place();
+		}
 	}
 }
 
@@ -344,6 +378,7 @@ function count(obj) {
 var BASE_LEVEL = 80;
 var LEVEL_HEIGHT = 80;
 var BASE_LEFT = 200;
+var NODE_WIDTH = 210;
 
 var CHART_SPACING = 500;
 
@@ -355,11 +390,12 @@ var CHART_SPACING = 500;
 // }
 
 var follow_on_move;
+var charts;
 
 $(function() {
 	follow_on_move = $('#follow_on_move');
 	$.get('layout.txt', function(data) {
-		var charts = load_indented_data(data);
+		charts = load_indented_data(data);
 		var left = 0;
 		for (var i in charts) {
 			var c_size = charts[i].calculate_size();
