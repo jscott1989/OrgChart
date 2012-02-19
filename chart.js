@@ -345,6 +345,8 @@ var BASE_LEVEL = 80;
 var LEVEL_HEIGHT = 80;
 var BASE_LEFT = 200;
 
+var CHART_SPACING = 500;
+
 // function expand_all(el) {
 // 	el.hidden = false;
 // 	for(var i in el.children) {
@@ -358,12 +360,14 @@ $(function() {
 	follow_on_move = $('#follow_on_move');
 	$.get('layout.txt', function(data) {
 		var charts = load_indented_data(data);
-
+		var left = 0;
 		for (var i in charts) {
-			charts[i].calculate_size();
+			var c_size = charts[i].calculate_size();
 
-			charts[i].left = 0;
+			charts[i].left = left;
 			charts[i].calculate_positions();
+
+			left += c_size.width + CHART_SPACING;
 
 			charts[i].place();
 			charts[i].draw_lines();
