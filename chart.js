@@ -1,7 +1,8 @@
 var nodes = {};
 
-function Node(name, parent) {
+function Node(name, link, parent) {
 	this.name = name;
+	this.link = link;
 	this.chart = parent.chart || parent;
 	this.parent = parent;
 	this.children = {};
@@ -9,8 +10,6 @@ function Node(name, parent) {
 	this.width = 0;
 	this.hidden = false;
 	this.lines = [];
-
-	this.link = "CSN2";
 
 	nodes[name] = this;
 }
@@ -284,13 +283,20 @@ function count_leading_tabs(line) {
 		tabs += 1
 		line = line.substring(1)
 	}
-	return [tabs, line];
+
+	line = line.split("->")
+
+	if (line.length == 1) {
+		line.push(undefined);
+	}
+
+	return [tabs, line[0], line[1]];
 }
 
 function load_indented_data(data) {
 	var lines = data.split('\n');
 
-	var obj = new Chart('BIG CHART')
+	var obj = new Chart()
 
 	load_indented_lines(obj, 0, lines, 0, true);
 
@@ -315,7 +321,7 @@ function load_indented_lines(obj, level, lines, line_count, is_chart) {
 			if (is_chart) {
 				obj.children[line[1]] = new Chart(line[1])
 			} else {
-				obj.children[line[1]] = new Node(line[1], obj)
+				obj.children[line[1]] = new Node(line[1], line[2], obj)
 			}
 
 			// Assume we can move in by one level and continue looking
