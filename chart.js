@@ -1,3 +1,137 @@
+function Node(name) {
+	this.name = name;
+	this.children = {};
+	this.left = 0;
+	this.width = 0;
+	this.hidden = false;
+	this.lines = [];
+}
+
+Node.prototype.refresh_visibility = function(hidden_in_tree) {
+	if (hidden_in_tree) {
+		this.element.hide();
+	} else {
+		this.element.show();
+	}
+
+	if (this.hidden) {
+		this.element.find('.expand').text('v');
+		hidden_in_tree = true;
+	} else {
+		this.element.find('.expand').text('^');
+	}
+
+	// TODO: Only cascade if something has changed here...
+	for (var i in this.children) {
+		this.children[i].refresh_visibility(hidden_in_tree);
+	}
+}
+
+Node.prototype.draw_lines = function() {
+	var inner_node = this.element.find('.inner-node');
+	var start_position = inner_node.offset();
+	start_position.left += (inner_node.width()/2);
+	start_position.top += inner_node.height();
+
+	var line;
+	while (line = this.lines.pop()) {
+		line.remove();
+	}
+
+	for(var i in this.children) {
+		if (this.children[i].element.is(':visible')) {
+			inner_node = this.children[i].element.find('.inner-node');
+			var end_position = inner_node.offset();
+			end_position.left += inner_node.width()/2;
+			draw_line(paper, this, start_position, end_position);
+		}
+		this.children[i].draw_lines();
+	}
+}
+
+Node.prototype.calculate_size = function() {
+	this.width = 0;
+
+	if (!(this.hidden)) {
+		for(var i in this.children) {
+			this.width += this.children[i].calculate_size().width;
+		}
+	}
+
+	if (this.width < 210) {
+		this.width = 210;
+	}
+
+	return {width: this.width};
+}
+
+// Returns true if positions have changed
+Node.prototype.calculate_positions = function() {
+	var position_changed = false;
+
+	var left = this.left;
+
+	for(var i in this.children) {
+		if (this.children[i].left != left) {
+			this.children[i].left = left;
+			position_changed = true;
+		}
+
+		this.children[i].level = this.level + 1;
+		left += this.children[i].width;
+		position_changed = this.children[i].calculate_positions() || position_changed;
+	}
+
+	return position_changed;
+}
+
+function Chart(name) {
+	this.children = {};
+}
+
+Chart.prototype.refresh_visibility = function() {
+	for (var i in this.children) {
+		this.children[i].refresh_visibility();
+	}
+}
+
+Chart.prototype.calculate_size = function() {
+	this.width = 0;
+
+	if (!(this.hidden)) {
+		for(var i in this.children) {
+			this.width += this.children[i].calculate_size().width;
+		}
+	}
+
+	if (this.width < 210) {
+		this.width = 210;
+	}
+
+	return {width: this.width};
+}
+
+// Returns true if positions have changed
+Chart.prototype.calculate_positions = function() {
+	var position_changed = false;
+
+	var left = this.left;
+
+	for(var i in this.children) {
+		if (this.children[i].left != left) {
+			this.children[i].left = left;
+			position_changed = true;
+		}
+
+		this.children[i].level = 0;
+		left += this.children[i].width;
+		position_changed = this.children[i].calculate_positions() || position_changed;
+	}
+
+	return position_changed;
+}
+
+
 function count_leading_tabs(line) {
 	var tabs = 0;
 	while (line.substring(0,1) == '\t') {
@@ -10,7 +144,7 @@ function count_leading_tabs(line) {
 function load_indented_data(data) {
 	var lines = data.split('\n');
 
-	var obj = {'children': {}}
+	var obj = new Chart('BIG CHART')
 
 	load_indented_lines(obj, 0, lines, 0);
 	return obj;
@@ -31,7 +165,7 @@ function load_indented_lines(obj, level, lines, line_count) {
 		}
 
 		if (line[0] == level) {
-			obj.children[line[1]] = {'name': line[1], 'children': [], 'left': 0, 'width': 0, 'hidden': false, 'lines': []};
+			obj.children[line[1]] = new Node(line[1])
 
 			// Assume we can move in by one level and continue looking
 			line_count = load_indented_lines(obj.children[line[1]], level + 1, lines, line_count + 1)
@@ -60,68 +194,6 @@ function draw_line(paper, el, start_position, end_position) {
 }
 
 var paper = Raphael(0, 0, 10000, 10000);
-
-function draw_lines(el) {
-	var inner_node = el.element.find('.inner-node');
-	var start_position = inner_node.offset();
-	start_position.left += (inner_node.width()/2);
-	start_position.top += inner_node.height();
-
-	var line;
-	while (line = el.lines.pop()) {
-		line.remove();
-	}
-
-	for(var i in el.children) {
-		if (el.children[i].element.is(':visible')) {
-			inner_node = el.children[i].element.find('.inner-node');
-			var end_position = inner_node.offset();
-			end_position.left += inner_node.width()/2;
-			draw_line(paper, el, start_position, end_position);
-		}
-		draw_lines(el.children[i]);
-	}
-}
-
-function calculate_width(el, caption) {
-	el.width = 0;
-
-	if (!(el.hidden)) {
-		for(var i in el.children) {
-			el.width += calculate_width(el.children[i], i);
-		}
-	}
-
-	if (el.width < 210) {
-		el.width = 210;
-	}
-
-	return el.width;
-}
-
-// Returns true if the positions have changed
-function calculate_positions(el, level) {
-	if (!level) {
-		level = 0;
-	}
-
-	var position_changed = false;
-
-	var left = el.left;
-
-	for(var i in el.children) {
-		if (el.children[i].left != left) {
-			el.children[i].left = left;
-			position_changed = true;
-		}
-
-		el.children[i].level = level;
-		left += el.children[i].width;
-		position_changed = calculate_positions(el.children[i], level + 1) || position_changed;
-	}
-
-	return position_changed;
-}
 
 function count(obj) {
 	c = 0;
@@ -154,7 +226,7 @@ function place_nodes(el, name) {
 				"top": BASE_LEVEL + el.level * LEVEL_HEIGHT
 			}).appendTo($('body'));
 		}
-		el.element.data('node', el);
+		el.element.data('object', el);
 	}
 	for(var i in el.children) {
 		place_nodes(el.children[i], i);
@@ -174,33 +246,12 @@ function position_nodes(el, name, callback) {
 	}
 }
 
-function refresh_visibility(node, hidden_in_tree) {
-	if ('element' in node) {
-		if (hidden_in_tree) {
-			node.element.hide();
-		} else {
-			node.element.show();
-		}
-
-		if (node.hidden) {
-			node.element.find('.expand').text('v');
-			hidden_in_tree = true;
-		} else {
-			node.element.find('.expand').text('^');
-		}
-	}
-
-	for (var i in node.children) {
-		refresh_visibility(node.children[i], hidden_in_tree);
-	}
-}
-
-function expand_all(el) {
-	el.hidden = false;
-	for(var i in el.children) {
-		expand_all(el.children[i]);
-	}
-}
+// function expand_all(el) {
+// 	el.hidden = false;
+// 	for(var i in el.children) {
+// 		expand_all(el.children[i]);
+// 	}
+// }
 
 function clear_paper(el) {
 	var line;
@@ -214,12 +265,12 @@ function clear_paper(el) {
 }
 
 function redraw(formatted_data, options) {
-	refresh_visibility(formatted_data);
+	formatted_data.refresh_visibility();
 
 	old_width = formatted_data.width;
 
-	var changed = (old_width != calculate_width(formatted_data));
-	changed = calculate_positions(formatted_data) || changed;
+	var changed = (old_width != formatted_data.calculate_size().width);
+	changed = formatted_data.calculate_positions() || changed;
 
 	if (options && 'follow' in options) {
 		if (changed && follow_on_move.is(':checked')) {
@@ -259,7 +310,7 @@ function redraw(formatted_data, options) {
 			if (node_callbacks == node_count - 1) {
 
 				for (var i in formatted_data.children) {
-						draw_lines(formatted_data.children[i]);
+						formatted_data.children[i].draw_lines();
 				}
 				
 
@@ -271,7 +322,7 @@ function redraw(formatted_data, options) {
 	} else {
 		if (options && 'follow' in options) {
 			clear_paper(options['follow']);
-			draw_lines(options['follow']);
+			options['follow'].draw_lines();
 		}
 	}
 }
@@ -283,15 +334,15 @@ $(function() {
 	$.get('layout.txt', function(data) {
 		var formatted_data = load_indented_data(data);
 
-		calculate_width(formatted_data);
+		formatted_data.calculate_size();
 
 		formatted_data.left = 0;
-		calculate_positions(formatted_data);
+		formatted_data.calculate_positions();
 
 		place_nodes(formatted_data);
 		
 		for (var i in formatted_data.children) {
-			draw_lines(formatted_data.children[i]);
+			formatted_data.children[i].draw_lines();
 		}
 
 		$('#menu .collapse').click(function() {
@@ -306,15 +357,15 @@ $(function() {
 			}
 		});
 
-		$('#expand_all').click(function() {
-			expand_all(formatted_data);
-			redraw(formatted_data);
-			return false;
-		});
+		// $('#expand_all').click(function() {
+		// 	expand_all(formatted_data);
+		// 	redraw(formatted_data);
+		// 	return false;
+		// });
 
 		$('.node .inner-node .expand').click(function() {
 			var node_el = $(this).closest('.node');
-			var node = node_el.data('node');
+			var node = node_el.data('object');
 			node.hidden = !node.hidden;
 
 			redraw(formatted_data, {follow: node});
