@@ -35,19 +35,17 @@
 <script src="raphael.js"></script>
 <script src="chart.js"></script>
 
-<script id="nodeTemplateChildren" type="text/x-jquery-tmpl">
-	<div class="node">
-		<div class="inner-node">
-			<span>${name}</span>
-			<div class="expand">^</div>
-		</div>
-	</div>
-</script>
-
 <script id="nodeTemplate" type="text/x-jquery-tmpl">
 	<div class="node">
 		<div class="inner-node">
 			<span>${name}</span>
+			{{if count(children) > 0}}
+				<div class="expand">^</div>
+			{{/if}}
+
+			{{if link}}
+				<div title="Jump to ${link}" class="link">&lt;-&gt;</div>
+			{{/if}}
 		</div>
 	</div>
 </script>

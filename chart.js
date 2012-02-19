@@ -1,3 +1,5 @@
+var nodes = {};
+
 function Node(name, parent) {
 	this.name = name;
 	this.chart = parent.chart || parent;
@@ -7,6 +9,10 @@ function Node(name, parent) {
 	this.width = 0;
 	this.hidden = false;
 	this.lines = [];
+
+	this.link = "CSN2";
+
+	nodes[name] = this;
 }
 
 Node.prototype.refresh_visibility = function(hidden_in_tree) {
@@ -96,19 +102,12 @@ Node.prototype.calculate_positions = function() {
 Node.prototype.place = function() {
 	this.chart.node_count++;
 
-	if (count(this.children) > 0) { 
-		this.element = $('#nodeTemplateChildren').tmpl({"name": this.name}).css({
-			"left": BASE_LEFT + this.left, 
-			"width": this.width,
-			"top": BASE_LEVEL + this.level * LEVEL_HEIGHT
-		}).appendTo($('body'));
-	} else {
-		this.element = $('#nodeTemplate').tmpl({"name": this.name}).css({
-			"left": BASE_LEFT + this.left, 
-			"width": this.width, 
-			"top": BASE_LEVEL + this.level * LEVEL_HEIGHT
-		}).appendTo($('body'));
-	}
+	this.element = $('#nodeTemplate').tmpl({"name": this.name, "children": this.children, "link": this.link}).css({
+		"left": BASE_LEFT + this.left, 
+		"width": this.width, 
+		"top": BASE_LEVEL + this.level * LEVEL_HEIGHT
+	}).appendTo($('body'));
+
 	this.element.data('object', this);
 
 	for(var i in this.children) {
@@ -396,6 +395,7 @@ var CHART_SPACING = 500;
 var follow_on_move;
 var charts;
 
+
 $(function() {
 	follow_on_move = $('#follow_on_move');
 	$.get('layout.txt', function(data) {
@@ -444,6 +444,13 @@ $(function() {
 			node.hidden = !node.hidden;
 
 			node.chart.redraw({follow: node});
+		});
+
+		$('.node .inner-node .link').click(function() {
+			var node_el = $(this).closest('.node');
+			var node = node_el.data('object');
+
+			scroll_to(nodes[node.link]);
 		});
 	});
 })

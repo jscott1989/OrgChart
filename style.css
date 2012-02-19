@@ -39,6 +39,19 @@ html, body {
 	cursor: pointer;
 }
 
+.link {
+	position: absolute;
+	bottom: 2px;
+	left: 88px;
+	background: #000;
+	color: #FFF;
+	border: 1px solid black;
+	width: 23px;
+	height: 15px;
+	text-align: center;
+	cursor: pointer;
+}
+
 #menu {
 	position: fixed;
 	top: 0px;
