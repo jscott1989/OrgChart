@@ -8,7 +8,7 @@ Overall
 			Team Manager
 		HSWT
 			Team Manager
-		CSN
+		CSN->CSN Head
 			Duty Officer
 				Team Manager
 					Allocated Worker
@@ -40,3 +40,6 @@ Overall
 		Transition from Children's Services
 			Team Manager
 		Online Self Assessment
+CSN Head
+	Another CSN
+	Something else
