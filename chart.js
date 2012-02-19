@@ -1,5 +1,7 @@
-function Node(name) {
+function Node(name, parent) {
 	this.name = name;
+	this.chart = parent.chart || parent;
+	this.parent = parent;
 	this.children = {};
 	this.left = 0;
 	this.width = 0;
@@ -85,8 +87,55 @@ Node.prototype.calculate_positions = function() {
 	return position_changed;
 }
 
+Node.prototype.place = function() {
+	this.chart.node_count++;
+
+	if (count(this.children) > 0) { 
+		this.element = $('#nodeTemplateChildren').tmpl({"name": this.name}).css({
+			"left": BASE_LEFT + this.left, 
+			"width": this.width,
+			"top": BASE_LEVEL + this.level * LEVEL_HEIGHT
+		}).appendTo($('body'));
+	} else {
+		this.element = $('#nodeTemplate').tmpl({"name": this.name}).css({
+			"left": BASE_LEFT + this.left, 
+			"width": this.width, 
+			"top": BASE_LEVEL + this.level * LEVEL_HEIGHT
+		}).appendTo($('body'));
+	}
+	this.element.data('object', this);
+
+	for(var i in this.children) {
+		this.children[i].place();
+	}
+}
+
+Node.prototype.position = function(callback) {
+	this.element.animate({
+		"left": BASE_LEFT + this.left, 
+		"width": this.width, 
+		"top": BASE_LEVEL + this.level * LEVEL_HEIGHT
+	}, {"complete": callback});
+
+	for(var i in this.children) {
+		this.children[i].position(callback);
+	}
+}
+
+Node.prototype.clear = function() {
+	var line;
+	while (line = this.lines.pop()) {
+		line.remove();
+	}
+
+	for (var i in this.children) {
+		this.children[i].clear();
+	}
+}
+
 function Chart(name) {
 	this.children = {};
+	this.node_count = 0;
 }
 
 Chart.prototype.refresh_visibility = function() {
@@ -131,6 +180,85 @@ Chart.prototype.calculate_positions = function() {
 	return position_changed;
 }
 
+Chart.prototype.place = function() {
+	for(var i in this.children) {
+		this.children[i].place();
+	}
+}
+
+Chart.prototype.position = function(callback) {
+	for(var i in this.children) {
+		this.children[i].position(callback);
+	}
+}
+
+Chart.prototype.redraw = function(options) {
+	this.refresh_visibility();
+	var old_width = this.width;
+
+	var changed = (old_width != this.calculate_size().width);
+	changed = this.calculate_positions() || changed;
+
+	if (options && 'follow' in options) {
+		if (changed && follow_on_move.is(':checked')) {
+			var node_position = options['follow'].element.offset();
+
+			node_position.left += (options['follow'].width/2) - 100; // 200 is the width of the inner-node
+
+			var top_offset = (0-($(window).height()/2));
+			var left_offset =(0-($(window).width()/2));
+
+			node_position.left += left_offset;
+			node_position.top += top_offset;
+
+			if (node_position.left < 0) {
+				node_position.left = 0;
+			}
+
+			if (node_position.top < 0) {
+				node_position.top = 0;
+			}
+
+			$.scrollTo(node_position, 400);
+		}
+	}
+	
+
+	if (changed) {
+		for (var i in this.children) {
+			this.children[i].clear();
+		}
+
+		var node_callbacks = 0;
+		
+		this.position($.proxy(function() {
+			node_callbacks += 1;
+			if (node_callbacks == this.node_count - 1) {
+
+				for (var i in this.children) {
+						this.children[i].draw_lines();
+				}
+				
+
+				if (options && 'callback' in options) {
+					options['callback']();
+				}
+			}
+		}, this));
+	} else {
+		if (options && 'follow' in options) {
+			options['follow'].clear();
+			options['follow'].draw_lines();
+		}
+	}
+}
+
+Chart.prototype.clear = function() {
+	for (var i in this.children) {
+		this.children[i].clear();
+	}
+}
+
 
 function count_leading_tabs(line) {
 	var tabs = 0;
@@ -165,7 +293,7 @@ function load_indented_lines(obj, level, lines, line_count) {
 		}
 
 		if (line[0] == level) {
-			obj.children[line[1]] = new Node(line[1])
+			obj.children[line[1]] = new Node(line[1], obj)
 
 			// Assume we can move in by one level and continue looking
 			line_count = load_indented_lines(obj.children[line[1]], level + 1, lines, line_count + 1)
@@ -205,46 +333,9 @@ function count(obj) {
 	return c;
 }
 
-var node_count = 0;
 var BASE_LEVEL = 80;
 var LEVEL_HEIGHT = 80;
 var BASE_LEFT = 200;
-
-function place_nodes(el, name) {
-	node_count += 1;
-	if (name) {
-		if (count(el) > 1) { 
-			el.element = $('#nodeTemplateChildren').tmpl({"name": name}).css({
-				"left": BASE_LEFT + el.left, 
-				"width": el.width,
-				"top": BASE_LEVEL + el.level * LEVEL_HEIGHT
-			}).appendTo($('body'));
-		} else {
-			el.element = $('#nodeTemplate').tmpl({"name": name}).css({
-				"left": BASE_LEFT + el.left, 
-				"width": el.width, 
-				"top": BASE_LEVEL + el.level * LEVEL_HEIGHT
-			}).appendTo($('body'));
-		}
-		el.element.data('object', el);
-	}
-	for(var i in el.children) {
-		place_nodes(el.children[i], i);
-	}
-}
-
-function position_nodes(el, name, callback) {
-	if (name) {
-		el.element.animate({
-			"left": BASE_LEFT + el.left, 
-			"width": el.width, 
-			"top": BASE_LEVEL + el.level * LEVEL_HEIGHT
-		}, {"complete": callback});
-	}
-	for(var i in el.children) {
-		position_nodes(el.children[i], i, callback);
-	}
-}
 
 // function expand_all(el) {
 // 	el.hidden = false;
@@ -252,80 +343,6 @@ function position_nodes(el, name, callback) {
 // 		expand_all(el.children[i]);
 // 	}
 // }
-
-function clear_paper(el) {
-	var line;
-	while (line = el.lines.pop()) {
-		line.remove();
-	}
-
-	for (var i in el.children) {
-		clear_paper(el.children[i]);
-	}
-}
-
-function redraw(formatted_data, options) {
-	formatted_data.refresh_visibility();
-
-	old_width = formatted_data.width;
-
-	var changed = (old_width != formatted_data.calculate_size().width);
-	changed = formatted_data.calculate_positions() || changed;
-
-	if (options && 'follow' in options) {
-		if (changed && follow_on_move.is(':checked')) {
-			var node_position = options['follow'].element.offset();
-
-			node_position.left += (options['follow'].width/2) - 100; // 200 is the width of the inner-node
-
-			var top_offset = (0-($(window).height()/2));
-			var left_offset =(0-($(window).width()/2));
-
-			node_position.left += left_offset;
-			node_position.top += top_offset;
-
-			if (node_position.left < 0) {
-				node_position.left = 0;
-			}
-
-			if (node_position.top < 0) {
-				node_position.top = 0;
-			}
-
-			$.scrollTo(node_position, 400);
-		}
-	}
-	
-
-	if (changed) {
-
-		for (var i in formatted_data.children) {
-			clear_paper(formatted_data.children[i]);
-		}
-
-		var node_callbacks = 0;
-		
-		position_nodes(formatted_data, false, function() {
-			node_callbacks += 1;
-			if (node_callbacks == node_count - 1) {
-
-				for (var i in formatted_data.children) {
-						formatted_data.children[i].draw_lines();
-				}
-				
-
-				if (options && 'callback' in options) {
-					options['callback']();
-				}
-			}
-		});
-	} else {
-		if (options && 'follow' in options) {
-			clear_paper(options['follow']);
-			options['follow'].draw_lines();
-		}
-	}
-}
 
 var follow_on_move;
 
@@ -339,7 +356,7 @@ $(function() {
 		formatted_data.left = 0;
 		formatted_data.calculate_positions();
 
-		place_nodes(formatted_data);
+		formatted_data.place();
 		
 		for (var i in formatted_data.children) {
 			formatted_data.children[i].draw_lines();
@@ -368,7 +385,7 @@ $(function() {
 			var node = node_el.data('object');
 			node.hidden = !node.hidden;
 
-			redraw(formatted_data, {follow: node});
+			formatted_data.redraw({follow: node});
 		});
 	});
 })
