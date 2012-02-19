@@ -242,25 +242,7 @@ Chart.prototype.redraw = function(options) {
 
 	if (options && 'follow' in options) {
 		if (changed && follow_on_move.is(':checked')) {
-			var node_position = options['follow'].element.offset();
-
-			node_position.left += (options['follow'].width/2) - 100; // 200 is the width of the inner-node
-
-			var top_offset = (0-($(window).height()/2));
-			var left_offset =(0-($(window).width()/2));
-
-			node_position.left += left_offset;
-			node_position.top += top_offset;
-
-			if (node_position.left < 0) {
-				node_position.left = 0;
-			}
-
-			if (node_position.top < 0) {
-				node_position.top = 0;
-			}
-
-			$.scrollTo(node_position, 400);
+			scroll_to(options['follow']);
 		}
 	}
 	
@@ -375,6 +357,28 @@ function count(obj) {
 	return c;
 }
 
+function scroll_to(node) {
+	var node_position = node.element.offset();
+
+	node_position.left += (node.width/2) - 100; // 200 is the width of the inner-node
+
+	var top_offset = (0-($(window).height()/2));
+	var left_offset =(0-($(window).width()/2));
+
+	node_position.left += left_offset;
+	node_position.top += top_offset;
+
+	if (node_position.left < 0) {
+		node_position.left = 0;
+	}
+
+	if (node_position.top < 0) {
+		node_position.top = 0;
+	}
+
+	$.scrollTo(node_position, 400);
+}
+
 var BASE_LEVEL = 80;
 var LEVEL_HEIGHT = 80;
 var BASE_LEFT = 200;
@@ -398,6 +402,9 @@ $(function() {
 		charts = load_indented_data(data);
 		var left = 0;
 		for (var i in charts) {
+			var chart_li = $('<li></li>', {'text': charts[i].name}).data('object', charts[i]);
+			$('#charts').append(chart_li);
+
 			var c_size = charts[i].calculate_size();
 
 			charts[i].left = left;
@@ -408,6 +415,10 @@ $(function() {
 			charts[i].place();
 			charts[i].draw_lines();
 		}
+
+		$('#charts li').click(function() {
+			scroll_to($(this).data('object'));
+		})
 
 		$('#menu .collapse').click(function() {
 			var menu = $(this).parent();
