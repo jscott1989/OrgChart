@@ -136,6 +136,7 @@ Node.prototype.clear = function() {
 function Chart(name) {
 	this.children = {};
 	this.node_count = 0;
+	this.name = name;
 }
 
 Chart.prototype.refresh_visibility = function() {
@@ -192,6 +193,12 @@ Chart.prototype.position = function(callback) {
 	}
 }
 
+Chart.prototype.draw_lines = function() {
+	for (var i in this.children) {
+		this.children[i].draw_lines();
+	}
+}
+
 Chart.prototype.redraw = function(options) {
 	this.refresh_visibility();
 	var old_width = this.width;
@@ -234,11 +241,7 @@ Chart.prototype.redraw = function(options) {
 		this.position($.proxy(function() {
 			node_callbacks += 1;
 			if (node_callbacks == this.node_count - 1) {
-
-				for (var i in this.children) {
-						this.children[i].draw_lines();
-				}
-				
+				this.draw_lines()
 
 				if (options && 'callback' in options) {
 					options['callback']();
@@ -274,11 +277,12 @@ function load_indented_data(data) {
 
 	var obj = new Chart('BIG CHART')
 
-	load_indented_lines(obj, 0, lines, 0);
-	return obj;
+	load_indented_lines(obj, 0, lines, 0, true);
+
+	return obj.children;
 }
 
-function load_indented_lines(obj, level, lines, line_count) {
+function load_indented_lines(obj, level, lines, line_count, is_chart) {
 	while (line_count < lines.length) {
 		if (lines[line_count] == '' || lines[line_count].indexOf("#") == 0) {
 			line_count++;
@@ -293,7 +297,11 @@ function load_indented_lines(obj, level, lines, line_count) {
 		}
 
 		if (line[0] == level) {
-			obj.children[line[1]] = new Node(line[1], obj)
+			if (is_chart) {
+				obj.children[line[1]] = new Chart(line[1])
+			} else {
+				obj.children[line[1]] = new Node(line[1], obj)
+			}
 
 			// Assume we can move in by one level and continue looking
 			line_count = load_indented_lines(obj.children[line[1]], level + 1, lines, line_count + 1)
@@ -349,17 +357,16 @@ var follow_on_move;
 $(function() {
 	follow_on_move = $('#follow_on_move');
 	$.get('layout.txt', function(data) {
-		var formatted_data = load_indented_data(data);
+		var charts = load_indented_data(data);
 
-		formatted_data.calculate_size();
+		for (var i in charts) {
+			charts[i].calculate_size();
 
-		formatted_data.left = 0;
-		formatted_data.calculate_positions();
+			charts[i].left = 0;
+			charts[i].calculate_positions();
 
-		formatted_data.place();
-		
-		for (var i in formatted_data.children) {
-			formatted_data.children[i].draw_lines();
+			charts[i].place();
+			charts[i].draw_lines();
 		}
 
 		$('#menu .collapse').click(function() {
@@ -385,7 +392,7 @@ $(function() {
 			var node = node_el.data('object');
 			node.hidden = !node.hidden;
 
-			formatted_data.redraw({follow: node});
+			node.chart.redraw({follow: node});
 		});
 	});
 })

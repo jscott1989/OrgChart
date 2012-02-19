@@ -41,5 +41,6 @@ Overall
 			Team Manager
 		Online Self Assessment
 CSN Head
-	Another CSN
-	Something else
+	CSN2
+		Another CSN
+		Something else
