@@ -305,12 +305,12 @@ function load_indented_data(data) {
 
 function load_indented_lines(obj, level, lines, line_count, is_chart) {
 	while (line_count < lines.length) {
-		if (lines[line_count] == '' || lines[line_count].indexOf("#") == 0) {
+		var line = count_leading_tabs(lines[line_count]);
+
+		if (lines[line_count] == '' || line[1].indexOf("#") == 0) {
 			line_count++;
 			continue;
 		}
-
-		var line = count_leading_tabs(lines[line_count]);
 
 		if (line.indexOf("#") == 0) {
 			line_count++;
@@ -389,7 +389,7 @@ var LEVEL_HEIGHT = 80;
 var BASE_LEFT = 200;
 var NODE_WIDTH = 210;
 
-var CHART_SPACING = 500;
+var CHART_SPACING = 900;
 
 // function expand_all(el) {
 // 	el.hidden = false;
