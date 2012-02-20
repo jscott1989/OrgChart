@@ -52,6 +52,24 @@ html, body {
 	cursor: pointer;
 }
 
+.url {
+	position: absolute;
+	bottom: 2px;
+	left: 5px;
+	background: #000;
+	color: #FFF;
+	border: 1px solid black;
+	width: 12px;
+	height: 15px;
+	text-align: center;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.url1 {
+	left: 22px;
+}
+
 #menu {
 	position: fixed;
 	top: 0px;

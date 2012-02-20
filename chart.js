@@ -1,8 +1,9 @@
 var nodes = {};
 
-function Node(name, link, parent) {
+function Node(name, link, urls, parent) {
 	this.name = name;
 	this.link = link;
+	this.urls = urls;
 	this.chart = parent.chart || parent;
 	this.parent = parent;
 	this.children = {};
@@ -100,8 +101,7 @@ Node.prototype.calculate_positions = function() {
 
 Node.prototype.place = function() {
 	this.chart.node_count++;
-
-	this.element = $('#nodeTemplate').tmpl({"name": this.name, "children": this.children, "link": this.link}).css({
+	this.element = $('#nodeTemplate').tmpl({"name": this.name, "children": this.children, "link": this.link, "urls": this.urls}).css({
 		"left": BASE_LEFT + this.left, 
 		"width": this.width, 
 		"top": BASE_LEVEL + this.level * LEVEL_HEIGHT
@@ -288,9 +288,20 @@ function count_leading_tabs(line) {
 
 	if (line.length == 1) {
 		line.push(undefined);
+		urls = line[0].split(/:(.+)?/);
+		line[0] = urls[0];
+	} else {
+		urls = line[1].split(/:(.+)?/);
+		line[1] = urls[0];
 	}
 
-	return [tabs, line[0], line[1]];
+	if (urls.length > 1) {
+		urls = urls[1].split(',');
+	} else {
+		urls = [];
+	}
+
+	return [tabs, line[0], line[1], urls];
 }
 
 function load_indented_data(data) {
@@ -321,7 +332,7 @@ function load_indented_lines(obj, level, lines, line_count, is_chart) {
 			if (is_chart) {
 				obj.children[line[1]] = new Chart(line[1])
 			} else {
-				obj.children[line[1]] = new Node(line[1], line[2], obj)
+				obj.children[line[1]] = new Node(line[1], line[2], line[3], obj)
 			}
 
 			// Assume we can move in by one level and continue looking

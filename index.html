@@ -39,6 +39,17 @@
 	<div class="node">
 		<div class="inner-node">
 			<span>${name}</span>
+
+
+			{{if urls[0]}}
+				<a href="${urls[0]}" target="_BLANK" class="url url0">L</a>
+			{{/if}}
+
+			{{if urls[1]}}
+				<a href="${urls[1]}" target="_BLANK" class="url url1">O</a>
+			{{/if}}
+			
+
 			{{if count(children) > 0}}
 				<div class="expand">^</div>
 			{{/if}}
