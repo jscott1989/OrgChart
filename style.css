@@ -124,8 +124,6 @@ html, body {
 .chart {
 	position: absolute;
 	top: 10px;
-
-	border: 3px solid red;
 }
 
 svg {
