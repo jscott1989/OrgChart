@@ -42,11 +42,11 @@ html, body {
 .link {
 	position: absolute;
 	bottom: 2px;
-	left: 88px;
+	left: 85px;
 	background: #000;
 	color: #FFF;
 	border: 1px solid black;
-	width: 23px;
+	width: 29px;
 	height: 15px;
 	text-align: center;
 	cursor: pointer;
@@ -63,12 +63,24 @@ html, body {
 	height: 15px;
 	text-align: center;
 	cursor: pointer;
-	text-decoration: none;
 }
 
 .url1 {
 	left: 22px;
 }
+
+/*.url {
+	position: absolute;
+	bottom: 2px;
+	left: 5px;
+	background: #000;
+	color: #FFF;
+	border: 1px solid black;
+	width: 29px;
+	height: 15px;
+	text-align: center;
+	cursor: pointer;
+}*/
 
 #menu {
 	position: fixed;
@@ -120,10 +132,8 @@ html, body {
 	cursor: pointer;
 }
 
-#created_by {
+#about {
 	position: absolute;
-	bottom:4px;
-	text-decoration: none;
 	color: black;
 	font-weight: bold;
 
@@ -135,7 +145,12 @@ html, body {
 	text-align: center;
 }
 
-.collapsed #created_by {
+#about a {
+	text-decoration: none;
+	color: black;
+}
+
+.collapsed #about {
 	display: none;
 }
 

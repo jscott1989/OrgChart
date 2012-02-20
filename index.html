@@ -24,8 +24,10 @@
 		<h2>Options</h2>
 		<input type="checkbox" checked="checked" id="follow_on_move">Follow on move
 	</div>
-
-	<a href="http://jscott.me" target="_blank" id="created_by">Created by Jonathan Scott</a>
+	<div id="about">
+		<div>Designed by Wayne Scott &amp; Carolyn Lewis</div>
+		<a href="http://jscott.me" target="_blank">Created by Jonathan Scott</a>
+	</div>
 </div>
 
 
@@ -42,11 +44,11 @@
 
 
 			{{if urls[0]}}
-				<a href="${urls[0]}" target="_BLANK" class="url url0">L</a>
+				<div data-target="${urls[0]}" class="url url0">L</div>
 			{{/if}}
 
 			{{if urls[1]}}
-				<a href="${urls[1]}" target="_BLANK" class="url url1">O</a>
+				<div data-target="${urls[1]}" class="url url1">O</div>
 			{{/if}}
 			
 

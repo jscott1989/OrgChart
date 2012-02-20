@@ -276,6 +276,14 @@ Chart.prototype.clear = function() {
 	}
 }
 
+function split_first(haystack, needle) {
+	for (var i = 0, j = haystack.length; i < j; i++) {
+		if (haystack.substring(i,i+1) === needle) { return [haystack.substring(0, i), haystack.substring(i+1)]; }
+	}
+	return [haystack];
+}
+
+// split_first('CSN2:http://google.com,http://yahoo.com', ':');
 
 function count_leading_tabs(line) {
 	var tabs = 0;
@@ -285,15 +293,15 @@ function count_leading_tabs(line) {
 	}
 
 	line = line.split("->")
-
+	var line_id = 0;
 	if (line.length == 1) {
 		line.push(undefined);
-		urls = line[0].split(/:(.+)?/);
-		line[0] = urls[0];
 	} else {
-		urls = line[1].split(/:(.+)?/);
-		line[1] = urls[0];
+		line_id = 1;
 	}
+
+	urls = split_first(line[line_id], ':');
+	line[line_id] = urls[0];
 
 	if (urls.length > 1) {
 		urls = urls[1].split(',');
@@ -318,12 +326,7 @@ function load_indented_lines(obj, level, lines, line_count, is_chart) {
 	while (line_count < lines.length) {
 		var line = count_leading_tabs(lines[line_count]);
 
-		if (lines[line_count] == '' || line[1].indexOf("#") == 0) {
-			line_count++;
-			continue;
-		}
-
-		if (line.indexOf("#") == 0) {
+		if (lines[line_count] == '' || line[1].substr(0,1) == '#') {
 			line_count++;
 			continue;
 		}
@@ -468,6 +471,10 @@ $(function() {
 			var node = node_el.data('object');
 
 			scroll_to(nodes[node.link]);
+		});
+
+		$('.url').click(function() {
+			window.open($(this).data('target'));
 		});
 	});
 })
