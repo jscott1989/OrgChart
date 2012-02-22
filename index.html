@@ -8,7 +8,7 @@
 <div id="map"></div>
 
 <div id="menu">
-	<div class="collapse">^</div>
+	<div class="collapse"></div>
 	<h2>Menu</h2>
 	<div id="commands">
 		<ul>
@@ -44,20 +44,20 @@
 
 
 			{{if urls[0]}}
-				<div data-target="${urls[0]}" class="url url0">L</div>
+				<div data-target="${urls[0]}" class="url url0"></div>
 			{{/if}}
 
 			{{if urls[1]}}
-				<div data-target="${urls[1]}" class="url url1">O</div>
+				<div data-target="${urls[1]}" class="url url1"></div>
 			{{/if}}
 			
 
 			{{if count(children) > 0}}
-				<div class="expand">^</div>
+				<div class="expand expanded"></div>
 			{{/if}}
 
 			{{if link}}
-				<div title="Jump to ${link}" class="link">&lt;-&gt;</div>
+				<div title="Jump to ${link}" class="link"></div>
 			{{/if}}
 		</div>
 	</div>

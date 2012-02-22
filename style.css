@@ -30,24 +30,22 @@ html, body {
 	position: absolute;
 	bottom: 2px;
 	right: 2px;
-	background: #000;
-	color: #FFF;
-	border: 1px solid black;
-	width: 15px;
-	height: 15px;
-	text-align: center;
+	background: url(expand.png);
+	width: 11px;
+	height: 8px;
 	cursor: pointer;
+}
+.expand.expanded {
+	background: url(collapse.png);
 }
 
 .link {
 	position: absolute;
 	bottom: 2px;
-	left: 85px;
-	background: #000;
-	color: #FFF;
-	border: 1px solid black;
-	width: 29px;
-	height: 15px;
+	left: 94px;
+	background: url(link.png);
+	width: 12px;
+	height: 12px;
 	text-align: center;
 	cursor: pointer;
 }
@@ -56,31 +54,17 @@ html, body {
 	position: absolute;
 	bottom: 2px;
 	left: 5px;
-	background: #000;
-	color: #FFF;
-	border: 1px solid black;
-	width: 12px;
-	height: 15px;
+	width: 10px;
+	height: 12px;
 	text-align: center;
 	cursor: pointer;
+	background: url(link1.png);
 }
 
 .url1 {
-	left: 22px;
+	left: 20px;
+	background: url(link2.png);
 }
-
-/*.url {
-	position: absolute;
-	bottom: 2px;
-	left: 5px;
-	background: #000;
-	color: #FFF;
-	border: 1px solid black;
-	width: 29px;
-	height: 15px;
-	text-align: center;
-	cursor: pointer;
-}*/
 
 #menu {
 	position: fixed;
@@ -121,15 +105,16 @@ html, body {
 
 #menu .collapse {
 	position: absolute;
-	top: 5px;
-	right: 5px;
-	background: #000;
-	color: #FFF;
-	border: 1px solid black;
-	width: 15px;
-	height: 15px;
-	text-align: center;
+	top: 15px;
+	right: 6px;
+	background: url(collapse.png);
+	width: 11px;
+	height: 8px;
 	cursor: pointer;
+}
+
+#menu.collapsed .collapse {
+	background: url(expand.png);
 }
 
 #about {

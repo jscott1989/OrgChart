@@ -23,10 +23,10 @@ Node.prototype.refresh_visibility = function(hidden_in_tree) {
 	}
 
 	if (this.hidden) {
-		this.element.find('.expand').text('v');
+		this.element.find('.expand').removeClass('expanded');
 		hidden_in_tree = true;
 	} else {
-		this.element.find('.expand').text('^');
+		this.element.find('.expand').addClass('expanded');
 	}
 
 	// TODO: Only cascade if something has changed here...
@@ -444,12 +444,6 @@ $(function() {
 			var menu = $(this).parent();
 
 			menu.toggleClass('collapsed');
-
-			if (menu.hasClass('collapsed')) {
-				menu.find('.collapse').text('v');
-			} else {
-				menu.find('.collapse').text('^');
-			}
 		});
 
 		// $('#expand_all').click(function() {
