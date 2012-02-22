@@ -101,6 +101,11 @@ html, body {
 	padding: 0;
 }
 
+#charts {
+	overflow: scroll;
+	height: 300px;
+}
+
 #menu li {
 	cursor: pointer;
 }
