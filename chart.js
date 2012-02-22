@@ -4,7 +4,8 @@
  */
 var nodes = {};
 
-function Node(name, link, urls, parent) {
+function Node(id, name, link, urls, parent) {
+	this.id = id;
 	this.name = name;
 	this.link = link;
 	this.urls = urls;
@@ -16,7 +17,7 @@ function Node(name, link, urls, parent) {
 	this.hidden = false;
 	this.lines = [];
 
-	nodes[name] = this;
+	nodes[id] = this;
 }
 
 Node.prototype.refresh_visibility = function(hidden_in_tree) {
@@ -151,7 +152,8 @@ Node.prototype.expandTo = function() {
 	node.redraw();
 }
 
-function Chart(name) {
+function Chart(id, name) {
+	this.id = id;
 	this.children = {};
 	this.node_count = 0;
 	this.name = name;
@@ -298,8 +300,6 @@ function split_first(haystack, needle) {
 	return [haystack];
 }
 
-// split_first('CSN2:http://google.com,http://yahoo.com', ':');
-
 function count_leading_tabs(line) {
 	var tabs = 0;
 	while (line.substring(0,1) == '\t') {
@@ -315,7 +315,7 @@ function count_leading_tabs(line) {
 		line_id = 1;
 	}
 
-	urls = split_first(line[line_id], ':');
+	var urls = split_first(line[line_id], ':');
 	line[line_id] = urls[0];
 
 	if (urls.length > 1) {
@@ -323,8 +323,16 @@ function count_leading_tabs(line) {
 	} else {
 		urls = [];
 	}
+	var id = line[0];
+	var name = line[0];
 
-	return [tabs, line[0], line[1], urls];
+	var ids = split_first(line[0], '&');
+	if (ids.length > 1) {
+		id = ids[0];
+		name = ids[1];
+	}
+
+	return [tabs, id, name, line[1], urls];
 }
 
 function load_indented_data(data) {
@@ -348,9 +356,9 @@ function load_indented_lines(obj, level, lines, line_count, is_chart) {
 
 		if (line[0] == level) {
 			if (is_chart) {
-				obj.children[line[1]] = new Chart(line[1])
+				obj.children[line[1]] = new Chart(line[1], line[2])
 			} else {
-				obj.children[line[1]] = new Node(line[1], line[2], line[3], obj)
+				obj.children[line[1]] = new Node(line[1], line[2], line[3], line[4], obj)
 			}
 
 			// Assume we can move in by one level and continue looking
