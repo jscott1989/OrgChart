@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2012 Jonathan Scott (http://jscott.me)
+ * Used under license to Sunderland City Council Adult Services
+ */
 var nodes = {};
 
 function Node(name, link, urls, parent) {
