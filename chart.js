@@ -481,5 +481,14 @@ $(function() {
 		$('.url').click(function() {
 			window.open($(this).data('target'));
 		});
+
+		$('#breakout').click(function() {
+			top.location = self.location;
+		})
+
+
+		if (top.location == self.location) {
+			$('#breakout').hide();
+		}
 	});
 })

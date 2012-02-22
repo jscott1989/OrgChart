@@ -8,7 +8,7 @@ Overall
 			Team Manager
 		HSWT
 			Team Manager
-		CSN->CSN2:http://google.com,http://yahoo.com
+		CSN->CSN2:http://google.com,http://yahoo.com,http://microsoft.com
 			Duty Officer
 				Team Manager
 					Allocated Worker
