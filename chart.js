@@ -375,7 +375,7 @@ function draw_line(paper, el, start_position, end_position) {
 	el.lines.push(c);
 }
 
-var paper = Raphael(0, 0, 10000, 10000);
+var paper;
 
 function count(obj) {
 	c = 0;
@@ -432,6 +432,7 @@ $(function() {
 	$.get('layout.txt', function(data) {
 		charts = load_indented_data(data);
 		var left = 0;
+		var height = 0;
 		for (var i in charts) {
 			var chart_li = $('<li></li>', {'text': charts[i].name}).data('object', charts[i]);
 			$('#charts').append(chart_li);
@@ -442,8 +443,18 @@ $(function() {
 			charts[i].calculate_positions();
 
 			left += c_size.width + CHART_SPACING;
+			if (c_size.height > height) {
+				height = c_size.height;
+			}
 
 			charts[i].place();
+		}
+
+		$('#map').css({"width": left, "height": height + 500});
+
+		paper = Raphael(0, 0, left, height + 500);
+
+		for (var i in charts) {
 			charts[i].draw_lines();
 		}
 
