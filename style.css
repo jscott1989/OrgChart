@@ -163,4 +163,5 @@ svg {
 	height: 48px;
 	background: url(fullscreen.png);
 	z-index: 10;
+	display: none;
 }

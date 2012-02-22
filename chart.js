@@ -498,8 +498,8 @@ $(function() {
 		})
 
 
-		if (top.location == self.location) {
-			$('#breakout').hide();
+		if (top.location != self.location) {
+			$('#breakout').show();
 		}
 	});
 })
