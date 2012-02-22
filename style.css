@@ -3,6 +3,10 @@ html, body {
 	padding: 0;
 }
 
+h1 {
+	width: 500px;
+}
+
 #map {
 	display: block;
 	background: #ADE7FF url(bg.png);
