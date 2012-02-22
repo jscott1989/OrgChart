@@ -137,10 +137,21 @@ Node.prototype.clear = function() {
 	}
 }
 
+// Ensure that this node is visible by expanding the parents down to this
+Node.prototype.expandTo = function() {
+	var node = this.parent;
+	while (!node.is_chart) {
+		node.hidden = false;
+		node = node.parent;
+	}
+	node.redraw();
+}
+
 function Chart(name) {
 	this.children = {};
 	this.node_count = 0;
 	this.name = name;
+	this.is_chart = true;
 }
 
 Chart.prototype.refresh_visibility = function() {
@@ -463,7 +474,7 @@ $(function() {
 		$('.node .inner-node .link').click(function() {
 			var node_el = $(this).closest('.node');
 			var node = node_el.data('object');
-
+			nodes[node.link].expandTo();
 			scroll_to(nodes[node.link]);
 		});
 
