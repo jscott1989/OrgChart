@@ -117,8 +117,8 @@ h1 {
 	cursor: pointer;
 }
 
-#menu li:hover {
-	background: pink;
+#menu li:hover span {
+	font-weight: bold;
 }
 
 #menu .collapse {
@@ -176,4 +176,15 @@ svg {
 	background: url(fullscreen.png);
 	z-index: 10;
 	display: none;
+}
+
+.chart_shortcut {
+	background: url(chart_shortcut.png) 1px 2px no-repeat;
+	padding-left: 15px;
+}
+
+.node_shortcut {
+	background: url(node_shortcut.png) 1px 3px no-repeat;
+	padding-left: 15px;
+	margin-left: 5px;
 }

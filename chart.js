@@ -4,9 +4,10 @@
  */
 var nodes = {};
 
-function Node(id, name, link, urls, parent) {
-	this.id = id;
+function Node(id, name, link, urls, parent, is_shortcut) {
+	this.id = base64_encode(id);
 	this.name = name;
+	this.is_shortcut = is_shortcut;
 	this.link = link;
 	this.urls = urls;
 	this.chart = parent.chart || parent;
@@ -307,6 +308,13 @@ function count_leading_tabs(line) {
 		line = line.substring(1)
 	}
 
+	var is_shortcut = false;
+
+	if (line.substr(0,1) == '!') {
+		is_shortcut = true;
+		line = line.substr(1);
+	}
+
 	line = line.split("->")
 	var line_id = 0;
 	if (line.length == 1) {
@@ -332,7 +340,7 @@ function count_leading_tabs(line) {
 		name = ids[1];
 	}
 
-	return [tabs, id, name, line[1], urls];
+	return [tabs, id, name, line[1], urls, is_shortcut];
 }
 
 function load_indented_data(data) {
@@ -358,7 +366,7 @@ function load_indented_lines(obj, level, lines, line_count, is_chart) {
 			if (is_chart) {
 				obj.children[line[1]] = new Chart(line[1], line[2])
 			} else {
-				obj.children[line[1]] = new Node(line[1], line[2], line[3], line[4], obj)
+				obj.children[line[1]] = new Node(line[1], line[2], line[3], line[4], obj, line[5])
 			}
 
 			// Assume we can move in by one level and continue looking
@@ -421,6 +429,56 @@ function scroll_to(node) {
 	$.scrollTo(node_position, 400);
 }
 
+function base64_encode (data) {
+    // http://kevin.vanzonneveld.net
+    // +   original by: Tyler Akins (http://rumkin.com)
+    // +   improved by: Bayron Guevara
+    // +   improved by: Thunder.m
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   bugfixed by: Pellentesque Malesuada
+    // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    // +   improved by: Rafał Kukawski (http://kukawski.pl)
+    // *     example 1: base64_encode('Kevin van Zonneveld');
+    // *     returns 1: 'S2V2aW4gdmFuIFpvbm5ldmVsZA=='
+    // mozilla has this native
+    // - but breaks in 2.0.0.12!
+    //if (typeof this.window['atob'] == 'function') {
+    //    return atob(data);
+    //}
+    var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    var o1, o2, o3, h1, h2, h3, h4, bits, i = 0,
+        ac = 0,
+        enc = "",
+        tmp_arr = [];
+
+    if (!data) {
+        return data;
+    }
+
+    do { // pack three octets into four hexets
+        o1 = data.charCodeAt(i++);
+        o2 = data.charCodeAt(i++);
+        o3 = data.charCodeAt(i++);
+
+        bits = o1 << 16 | o2 << 8 | o3;
+
+        h1 = bits >> 18 & 0x3f;
+        h2 = bits >> 12 & 0x3f;
+        h3 = bits >> 6 & 0x3f;
+        h4 = bits & 0x3f;
+
+        // use hexets to index into b64, and append result to encoded string
+        tmp_arr[ac++] = b64.charAt(h1) + b64.charAt(h2) + b64.charAt(h3) + b64.charAt(h4);
+    } while (i < data.length);
+
+    enc = tmp_arr.join('');
+    
+    var r = data.length % 3;
+    
+    return (r ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
+
+}
+
 var BASE_LEVEL = 80;
 var LEVEL_HEIGHT = 80;
 var BASE_LEFT = 200;
@@ -446,8 +504,10 @@ $(function() {
 		var left = 0;
 		var height = 0;
 		for (var i in charts) {
-			var chart_li = $('<li></li>', {'text': charts[i].name}).data('object', charts[i]);
-			$('#charts').append(chart_li);
+			var chart_li = $('#shortcutTemplate').tmpl({"name": charts[i].name, "type": "chart", "id": charts[i].id});
+
+			chart_li.data('object', charts[i])
+			$('#shortcuts').append(chart_li);
 
 			var c_size = charts[i].calculate_size();
 
@@ -470,7 +530,15 @@ $(function() {
 			charts[i].draw_lines();
 		}
 
-		$('#charts li').click(function() {
+		for (var i in nodes) {
+			if (nodes[i].is_shortcut) {
+				var shortcut_li = $('#shortcutTemplate').tmpl({"name": nodes[i].name, "type": "node", "id": nodes[i].id});
+				shortcut_li.data('object', nodes[i])
+				shortcut_li.insertAfter($('#shortcut_' + nodes[i].chart.id));
+			}
+		}
+
+		$('#shortcuts li').click(function() {
 			scroll_to($(this).data('object'));
 		})
 

@@ -9,8 +9,8 @@
 
 <div id="menu">
 	<div class="collapse"></div>
-	<h2>Charts</h2>
-	<ul id="charts">
+	<h2>Shortcuts</h2>
+	<ul id="shortcuts">
 	</ul>
 	<div id="about">
 		<a href="http://jscott.me" target="_blank">Copyright &copy; 2012 Jonathan Scott</a>
@@ -61,6 +61,13 @@
 	<div class="chart">
 		<h1>${name}</h1>
 	</div>
+</script>
+
+<script id="shortcutTemplate" type="text/x-jquery-tmpl">
+	<li class="${type}_shortcut" id="shortcut_${id}">
+		<span>${name}</span>
+		<ul></ul>
+	</li>
 </script>
 
 </body>
