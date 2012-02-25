@@ -257,7 +257,7 @@ Chart.prototype.redraw = function(options) {
 	changed = this.calculate_positions() || changed;
 
 	if (options && 'follow' in options) {
-		if (changed && follow_on_move.is(':checked')) {
+		if (changed) {
 			scroll_to(options['follow']);
 		}
 	}
@@ -493,12 +493,10 @@ var CHART_SPACING = 900;
 // 	}
 // }
 
-var follow_on_move;
 var charts;
 
 
 $(function() {
-	follow_on_move = $('#follow_on_move');
 	$.get('layout.txt', function(data) {
 		charts = load_indented_data(data);
 		var left = 0;
