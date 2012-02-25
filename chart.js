@@ -5,7 +5,7 @@
 var nodes = {};
 
 function Node(id, name, link, urls, parent, is_shortcut) {
-	this.id = base64_encode(id);
+	this.id = base64_encode(id).replace(/=/g, '');
 	this.name = name;
 	this.is_shortcut = is_shortcut;
 	this.link = link;
@@ -154,7 +154,7 @@ Node.prototype.expandTo = function() {
 }
 
 function Chart(id, name) {
-	this.id = id;
+	this.id = base64_encode(id).replace(/=/g, '');
 	this.children = {};
 	this.node_count = 0;
 	this.name = name;
@@ -346,7 +346,7 @@ function count_leading_tabs(line) {
 function load_indented_data(data) {
 	var lines = data.split('\n');
 
-	var obj = new Chart()
+	var obj = new Chart('', '')
 
 	load_indented_lines(obj, 0, lines, 0, true);
 
