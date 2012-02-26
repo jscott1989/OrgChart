@@ -408,6 +408,7 @@ function count(obj) {
 }
 
 function scroll_to(node) {
+	node.expandTo();
 	var node_position = node.element.offset();
 
 	node_position.left += (node.width/2) - 100; // 200 is the width of the inner-node
@@ -563,7 +564,6 @@ $(function() {
 		$('.node .inner-node .link').click(function() {
 			var node_el = $(this).closest('.node');
 			var node = node_el.data('object');
-			nodes[node.link].expandTo();
 			scroll_to(nodes[node.link]);
 		});
 
