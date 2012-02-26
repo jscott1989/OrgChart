@@ -408,7 +408,10 @@ function count(obj) {
 }
 
 function scroll_to(node) {
-	node.expandTo();
+	if ('expandTo' in node) {
+		node.expandTo();
+	}
+	
 	var node_position = node.element.offset();
 
 	node_position.left += (node.width/2) - 100; // 200 is the width of the inner-node
